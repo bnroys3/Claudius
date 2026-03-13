@@ -5,7 +5,7 @@ A lightweight, fully-owned multi-agent framework with a UI — just clean Python
 ## Structure
 
 ```
-agent_crew/
+claudius/
   backend/
     main.py          # FastAPI server + REST API
     crew.py          # Agent, Task, Crew classes
