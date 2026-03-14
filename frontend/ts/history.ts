@@ -18,10 +18,7 @@ export async function loadHistory(): Promise<void> {
       <div class="card">
         <div class="card-header" onclick="toggleExpand('run-${run.id}')" style="cursor:pointer; user-select:none">
           <div class="card-icon icon-blue">◆</div>
-          <div style="flex:1; font-size:13px">
-            ${esc((run.work_item_description ?? run.id).slice(0, 70))}
-            ${(run.work_item_description ?? '').length > 70 ? '&hellip;' : ''}
-          </div>
+          <div style="flex:1; font-size:13px">${esc((run.work_item_description ?? run.id).slice(0, 70))}${(run.work_item_description ?? '').length > 70 ? '&hellip;' : ''}</div>
           <span style="font-size:11px; color:var(--text2); margin-right:8px">${esc(run.orchestrator_name ?? '')}</span>
           <span class="status status-${run.status}" style="margin-right:8px">${run.status}</span>
           <span class="expand-arrow" style="font-size:10px; color:var(--text3)">&#9660;</span>

@@ -1,0 +1,51 @@
+<div class="panel" id="panel-setup">
+
+  <!-- Initial goal input -->
+  <div id="setupGoalScreen">
+    <div class="section-header">
+      <div class="section-title">New Task</div>
+    </div>
+    <div style="background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:24px; display:flex; flex-direction:column; gap:14px;">
+      <div style="font-size:13px; color:var(--text2); line-height:1.6">
+        Describe what you want to accomplish. Claudeius will ask any clarifying questions it needs, then propose the right team of agents and kick off the work automatically.
+      </div>
+      <div class="form-group">
+        <label class="form-label">What do you want to get done?</label>
+        <textarea class="form-textarea" id="setupGoalInput" style="min-height:100px"
+          placeholder="e.g. Review all open PRs in my repo and fix any issues found, then run tests to confirm everything passes."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">GitHub Repository <span style="color:var(--text3); font-weight:normal">(optional)</span></label>
+        <input class="form-input" id="setupRepoInput" placeholder="owner/repo  e.g. john-smith/my-project"/>
+        <div class="form-hint">If provided, agents will use this for all GitHub operations. You can also mention it in your description above.</div>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="setupStartBtn" onclick="startSetup()">Start &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat / proposal screen -->
+  <div id="setupChatScreen" style="display:none; flex-direction:column; gap:16px; flex:1; min-height:0">
+
+    <div class="section-header">
+      <div class="section-title">Agent Setup</div>
+      <button class="btn btn-ghost" onclick="resetSetup()">&#8592; Start Over</button>
+    </div>
+
+    <!-- Chat thread -->
+    <div id="setupChatThread" style="display:flex; flex-direction:column; gap:10px; overflow-y:auto; flex:1; min-height:0; padding-right:4px;"></div>
+
+    <!-- User reply input -->
+    <div id="setupReplyBox" style="display:none; gap:8px; align-items:flex-end;">
+      <textarea class="form-textarea" id="setupReplyInput" style="flex:1; min-height:60px; resize:none"
+        placeholder="Your answer..." onkeydown="handleReplyKey(event)"></textarea>
+      <button class="btn btn-primary" onclick="sendReply()" style="align-self:flex-end; white-space:nowrap">Send &#8594;</button>
+    </div>
+
+    <!-- Proposal review -->
+    <div id="setupProposalBox" style="display:none; flex-direction:column; gap:12px;"></div>
+
+  </div>
+
+</div>

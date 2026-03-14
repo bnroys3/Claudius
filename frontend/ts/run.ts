@@ -17,8 +17,6 @@ export function renderRunPanel(): void {
 }
 
 function showRunForm(): void {
-  const main = document.getElementById('main')!;
-
   // Only re-render the form if we're not mid-run
   const wiSel   = document.getElementById('runWorkItem')    as HTMLSelectElement | null;
   const orchSel = document.getElementById('runOrchestrator') as HTMLSelectElement | null;

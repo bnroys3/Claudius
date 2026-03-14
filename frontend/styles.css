@@ -162,6 +162,11 @@ main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 #toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg3); border: 1px solid var(--border2); padding: 10px 16px; border-radius: 5px; font-size: 13px; opacity: 0; transform: translateY(8px); transition: all 0.2s; z-index: 200; pointer-events: none; }
 #toast.show { opacity: 1; transform: none; }
 
+/* ── Setup chat ── */
+#setupChatScreen { flex: 1; min-height: 0; }
+#setupChatThread { flex: 1; min-height: 100px; overflow-y: auto; }
+#setupReplyBox { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }

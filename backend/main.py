@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from crew import Agent, WorkItem, OrchestratorCrew
+from setup import chat as setup_chat
 from github_tools import register_all_tools
 
 # -- Logging setup -------------------------------------------------------------
@@ -22,6 +23,9 @@ logging.basicConfig(
 logger = logging.getLogger("claudeius")
 
 register_all_tools()
+
+# Ensure workspace folder exists for agent file operations
+(Path("workspace")).mkdir(exist_ok=True)
 
 app = FastAPI(title="Claudeius API")
 
@@ -65,6 +69,26 @@ def load_data() -> dict:
 
 def save_data(data: dict):
     DATA_FILE.write_text(json.dumps(data, indent=2))
+
+
+def _reset_stale_running() -> None:
+    """Reset any work items/runs stuck in running state from a previous crash."""
+    data = load_data()
+    changed = False
+    for w in data.get("work_items", []):
+        if w.get("status") == "running":
+            w["status"] = "failed"
+            w["result"] = "Interrupted - server was restarted while this was running."
+            changed = True
+    for r in data.get("runs", []):
+        if r.get("status") == "running":
+            r["status"] = "failed"
+            changed = True
+    if changed:
+        save_data(data)
+        logger.info("Reset stale running work items/runs on startup")
+
+_reset_stale_running()
 
 
 # -- Pydantic models -----------------------------------------------------------
@@ -165,6 +189,65 @@ def delete_work_item(item_id: str):
     data["work_items"] = [w for w in data["work_items"] if w["id"] != item_id]
     save_data(data)
     return {"deleted": item_id}
+
+
+# -- Setup endpoints -----------------------------------------------------------
+
+class SetupMessage(BaseModel):
+    messages: list[dict]
+
+
+@app.post("/setup/chat")
+def setup_chat_endpoint(body: SetupMessage):
+    """
+    Stateless Claude conversation for agent setup.
+    Client sends full conversation history each time.
+    Returns either a question or a complete agent+work_item proposal.
+    """
+    return setup_chat(body.messages)
+
+
+@app.post("/setup/confirm")
+def setup_confirm(body: dict):
+    """
+    Accept a proposal: create agents and work item, return their IDs.
+    body: { agents: [...], work_item: {...} }
+    """
+    data = load_data()
+
+    # Clear existing agents and replace with proposed ones
+    new_agents = []
+    for a in body.get("agents", []):
+        agent = {
+            "id": str(uuid.uuid4()),
+            "name": a["name"],
+            "role": a["role"],
+            "goal": a["goal"],
+            "backstory": a.get("backstory", ""),
+            "model": a.get("model", "claude-sonnet-4-20250514"),
+            "is_orchestrator": a.get("is_orchestrator", False),
+        }
+        new_agents.append(agent)
+
+    wi_data = body.get("work_item", {})
+    work_item = {
+        "id": str(uuid.uuid4()),
+        "description": wi_data.get("description", ""),
+        "repo": wi_data.get("repo", ""),
+        "status": "pending",
+        "result": None,
+    }
+
+    data["agents"] = new_agents
+    data["work_items"].append(work_item)
+    save_data(data)
+
+    logger.info("Setup confirmed: %d agents created, work item %s", len(new_agents), work_item["id"])
+    return {
+        "agents": new_agents,
+        "work_item": work_item,
+        "orchestrator_id": next((a["id"] for a in new_agents if a["is_orchestrator"]), None),
+    }
 
 
 # -- Run endpoints -------------------------------------------------------------

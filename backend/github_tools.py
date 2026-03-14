@@ -114,10 +114,18 @@ def read_local_file(path: str) -> dict:
 
 
 def write_local_file(path: str, content: str) -> dict:
-    """Write content to a local file."""
-    with open(path, "w") as f:
+    """Write content to a local file. Path must be inside workspace/ folder."""
+    import os
+    from pathlib import Path
+    # Enforce workspace/ prefix - prevent agents writing outside their sandbox
+    safe_path = path.lstrip("/\\")
+    if not safe_path.startswith("workspace/") and not safe_path.startswith("workspace\\"):
+        safe_path = "workspace/" + safe_path
+    # Create parent directories if needed
+    Path(safe_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(safe_path, "w", encoding="utf-8") as f:
         f.write(content)
-    return {"path": path, "status": "written"}
+    return {"path": safe_path, "status": "written"}
 
 
 def run_command(command: str, cwd: str = ".") -> dict:
@@ -228,7 +236,7 @@ GITHUB_TOOLS = [
     },
     {
         "name": "read_local_file",
-        "description": "Read a file from the local filesystem",
+        "description": "Read a file from the local filesystem. Use workspace/ prefix for project files.",
         "input_schema": {
             "type": "object",
             "properties": {"path": {"type": "string"}},
@@ -237,7 +245,7 @@ GITHUB_TOOLS = [
     },
     {
         "name": "write_local_file",
-        "description": "Write content to a local file",
+        "description": "Write content to a local file. Always use workspace/ as the root folder for all project files.",
         "input_schema": {
             "type": "object",
             "properties": {

@@ -32,6 +32,7 @@ export async function loadWorkItems(): Promise<void> {
 type PageCallback = () => void;
 
 const PAGE_CALLBACKS: Record<string, PageCallback> = {
+  setup:     () => (window as PageWindow).initSetup(),
   agents:    () => (window as PageWindow).renderAgents(),
   workitems: () => (window as PageWindow).renderWorkItems(),
   run:       () => (window as PageWindow).renderRunPanel(),
@@ -40,6 +41,7 @@ const PAGE_CALLBACKS: Record<string, PageCallback> = {
 
 // PageWindow lets us call page-specific functions from app.ts
 interface PageWindow extends Window {
+  initSetup: () => void;
   renderAgents: () => void;
   renderWorkItems: () => void;
   renderRunPanel: () => void;
@@ -153,10 +155,11 @@ export function toggleLogData(id: string): void {
 
 async function init(): Promise<void> {
   await Promise.all([loadAgents(), loadWorkItems()]);
-  const firstBtn = document.querySelector<HTMLButtonElement>('nav button[data-page="agents"]')!;
-  await switchTab('agents', firstBtn);
+  const firstBtn = document.querySelector<HTMLButtonElement>('nav button[data-page="setup"]')!;
+  await switchTab('setup', firstBtn);
   await checkHealth();
   setInterval(checkHealth, 30000);
 }
 
-init();
+// Wait for all modules to finish registering their window exports before init
+window.addEventListener('load', () => init());

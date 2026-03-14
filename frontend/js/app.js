@@ -1,8 +1,8 @@
 const API = 'http://localhost:8000';
-// -- Shared state --------------------------------------------------------------
+// ── Shared state ──────────────────────────────────────────────────────────────
 export let agents = [];
 export let workItems = [];
-// -- API helper ----------------------------------------------------------------
+// ── API helper ────────────────────────────────────────────────────────────────
 export async function api(path, method = 'GET', body = null) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (body)
@@ -12,7 +12,7 @@ export async function api(path, method = 'GET', body = null) {
         throw new Error(await r.text());
     return r.json();
 }
-// -- Data loaders --------------------------------------------------------------
+// ── Data loaders ──────────────────────────────────────────────────────────────
 export async function loadAgents() {
     try {
         agents = await api('/agents');
@@ -30,6 +30,7 @@ export async function loadWorkItems() {
     }
 }
 const PAGE_CALLBACKS = {
+    setup: () => window.initSetup(),
     agents: () => window.renderAgents(),
     workitems: () => window.renderWorkItems(),
     run: () => window.renderRunPanel(),
@@ -44,7 +45,7 @@ export async function switchTab(page, btn) {
     main.innerHTML = html;
     PAGE_CALLBACKS[page]?.();
 }
-// -- Utils ---------------------------------------------------------------------
+// ── Utils ─────────────────────────────────────────────────────────────────────
 export function closeModal(id) {
     document.getElementById(id)?.classList.remove('open');
 }
@@ -62,7 +63,7 @@ export function toast(msg) {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
 }
-// -- Health check --------------------------------------------------------------
+// ── Health check ──────────────────────────────────────────────────────────────
 async function checkHealth() {
     const dot = document.getElementById('statusDot');
     const label = document.getElementById('statusLabel');
@@ -76,7 +77,7 @@ async function checkHealth() {
         }
         else {
             dot.className = 'status-dot warn';
-            dot.title = data.issues.join(' � ');
+            dot.title = data.issues.join(' · ');
             label.textContent = 'config issues';
             label.style.color = 'var(--amber)';
             if (!window._healthBannerShown) {
@@ -101,7 +102,7 @@ function showHealthBanner(issues) {
             ' style="margin-left:auto;background:none;border:none;color:var(--amber);cursor:pointer;font-size:15px;padding:0 4px;">&#215;</button>';
     banner.classList.remove('hidden');
 }
-// -- Wire nav ------------------------------------------------------------------
+// ── Wire nav ──────────────────────────────────────────────────────────────────
 document.querySelectorAll('nav button').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset['page'], btn));
 });
@@ -111,13 +112,26 @@ document.addEventListener('click', (e) => {
         target.classList.remove('open');
     }
 });
-// -- Init ----------------------------------------------------------------------
+// ── Log expand/collapse (shared across run and history pages) ────────────────
+export function toggleLogData(id) {
+    const short = document.getElementById(`${id}-short`);
+    const full = document.getElementById(`${id}-full`);
+    if (!short || !full)
+        return;
+    const isExpanded = full.classList.contains('open');
+    short.style.display = isExpanded ? '' : 'none';
+    full.classList.toggle('open', !isExpanded);
+}
+// Expose globally for inline onclick handlers
+window['toggleLogData'] = toggleLogData;
+// ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
     await Promise.all([loadAgents(), loadWorkItems()]);
-    const firstBtn = document.querySelector('nav button[data-page="agents"]');
-    await switchTab('agents', firstBtn);
+    const firstBtn = document.querySelector('nav button[data-page="setup"]');
+    await switchTab('setup', firstBtn);
     await checkHealth();
     setInterval(checkHealth, 30000);
 }
-init();
+// Wait for all modules to finish registering their window exports before init
+window.addEventListener('load', () => init());
 //# sourceMappingURL=app.js.map

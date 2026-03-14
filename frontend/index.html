@@ -11,9 +11,10 @@
 <body>
 
 <header>
-  <div class="logo">claudeius</div>
+  <div class="logo">Claudeius</div>
   <nav>
-    <button class="active" data-page="agents">Agents</button>
+    <button class="active" data-page="setup">Setup</button>
+    <button data-page="agents">Agents</button>
     <button data-page="workitems">Work Items</button>
     <button data-page="run">Run</button>
     <button data-page="history">History</button>
@@ -101,7 +102,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">GitHub Repository</label>
-        <input class="form-input" id="workItemRepo" placeholder="owner/repo  e.g. bryson-wicker/my-project"/>
+        <input class="form-input" id="workItemRepo" placeholder="owner/repo  e.g. john-smith/my-project"/>
         <div class="form-hint">Agents will use this exact string for all GitHub operations. Leave blank if not using GitHub.</div>
       </div>
     </div>
@@ -116,6 +117,7 @@
 
 <!-- compiled from ts/ via: npx tsc (run automatically by start.py) -->
 <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/setup.js"></script>
 <script type="module" src="js/agents.js"></script>
 <script type="module" src="js/workitems.js"></script>
 <script type="module" src="js/run.js"></script>
