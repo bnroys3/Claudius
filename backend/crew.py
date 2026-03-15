@@ -40,18 +40,14 @@ def _trim_context(context: str, max_chars: int = MAX_CONTEXT_CHARS) -> str:
         return context
 
     # Split into iteration blocks
-    blocks = context.split("
-
-### Iteration ")
+    blocks = context.split("\n\n### Iteration ")
     header = blocks[0]  # Any preamble before first iteration
 
     # Always keep as many recent blocks as fit
     kept = []
     chars_used = 0
     for block in reversed(blocks[1:]):
-        block_text = "
-
-### Iteration " + block
+        block_text = "\n\n### Iteration " + block
         if chars_used + len(block_text) <= max_chars - 200:
             kept.insert(0, block_text)
             chars_used += len(block_text)
@@ -59,10 +55,7 @@ def _trim_context(context: str, max_chars: int = MAX_CONTEXT_CHARS) -> str:
             break
 
     dropped = len(blocks) - 1 - len(kept)
-    trim_note = f"
-
-[Context trimmed: {dropped} earlier iteration(s) removed to stay within token limits]
-"
+    trim_note = f"\n\n[Context trimmed: {dropped} earlier iteration(s) removed to stay within token limits]\n"
     logger.info("Context trimmed: dropped %d iterations, kept %d, total chars: %d",
                 dropped, len(kept), chars_used)
     return trim_note + "".join(kept)
