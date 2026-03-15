@@ -58,6 +58,18 @@ For complex goals (building a full app, major refactors, multi-phase projects):
 - A good substep takes 5-15 agent iterations, not 50+
 - Example: "Build a REST API" → first substep: "Set up project structure, create models, and implement the first 2 endpoints with tests"
 
+== ORCHESTRATOR RULE — NON-NEGOTIABLE ==
+EVERY proposal MUST include EXACTLY ONE agent with "is_orchestrator": true.
+No exceptions. Even for a single-worker task, there must be one orchestrator.
+For simple tasks, use claude-haiku-4-5-20251001 as the orchestrator to keep cost low.
+The orchestrator does not do work — it routes and decides. Name it like any other agent.
+
+Example minimum team (simple task):
+  - Jordan (Orchestrator, haiku-4.5) — coordinates
+  - Alex (Worker, sonnet-4) — does the work
+
+If you propose a team with NO orchestrator, your response is invalid.
+
 == WORKSPACE FOLDER ==
 All local file creation and development must happen inside a folder called workspace/
 relative to where the backend runs. Always include this in the work_item description:
@@ -137,7 +149,23 @@ def chat(messages: list[dict]) -> dict:
 
     try:
         parsed = json.loads(raw)
-        if parsed.get("type") in ("question", "proposal"):
+        if parsed.get("type") == "proposal":
+            # Ensure there is always exactly one orchestrator
+            agents = parsed.get("agents", [])
+            has_orchestrator = any(a.get("is_orchestrator") for a in agents)
+            if not has_orchestrator and agents:
+                logger.warning("Setup: proposal had no orchestrator — injecting one")
+                agents.insert(0, {
+                    "name": "Nova",
+                    "role": "Orchestrator",
+                    "goal": "Coordinate the team and route tasks to the right workers efficiently.",
+                    "backstory": "An experienced engineering lead who excels at breaking down work and delegating to specialists.",
+                    "model": "claude-haiku-4-5-20251001",
+                    "is_orchestrator": True,
+                })
+                parsed["agents"] = agents
+            return parsed
+        if parsed.get("type") == "question":
             return parsed
     except Exception:
         pass
